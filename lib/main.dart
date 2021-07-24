@@ -17,7 +17,7 @@ class _MyStatefulWidgetState extends State<MyApp> {
           primarySwatch: Colors.blue,
         ),
 
-    home: Predict()
+        home: Predict()
     );
   }
 }

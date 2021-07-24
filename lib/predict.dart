@@ -5,20 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-class resp{
-  String? categories;
 
-  resp({this.categories});
-  resp.fromJson(Map<String,dynamic>json){
-    categories = json['categories'];
-  }
-
-  Map<String,dynamic> toJson(){
-    final Map<String,dynamic> data = new Map<String,dynamic>();
-    data['categories'] = this.categories;
-    return data;
-  }
-}
 
 class Predict extends StatefulWidget{
   @override
@@ -33,7 +20,7 @@ class _PredictState extends State<Predict> {
   String pathimg = "";
   String pathpre = "";
   String final_response = "";
-
+  bool _visible = false;
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
@@ -81,39 +68,48 @@ class _PredictState extends State<Predict> {
                     setState(() {
                       imgf = fileimg;
                       pathpre = pathimg;
+                      if(pathpre != null) {
+                        _visible = true;
+                      }else{
+                        _visible = false;
+                      }
                     });
 
                   },
                 ),
-                FlatButton(
-                  color:Colors.blue,
-                  textColor:Colors.white,
-                  child:Text("Predict",),
-                  onPressed: ()async
-                  {
-                    final request = http.MultipartRequest("POST", Uri.parse(url));
-                    final multipartFile = await http.MultipartFile.fromPath('file', pathpre,contentType: MediaType('image', 'jpeg'));
-                    request.files.add(multipartFile);
-                    final streamedResponse = await request.send();
-                    final response = await http.Response.fromStream(streamedResponse);
-                    if(response.statusCode == 200){
-                      Fluttertoast.showToast(
-                          msg: "Predict Success",
-                          toastLength: Toast.LENGTH_SHORT,
-                          gravity: ToastGravity.CENTER,
-                          timeInSecForIosWeb: 1,
-                          backgroundColor: Colors.grey,
-                          textColor: Colors.red,
-                          fontSize: 10.0
-                      );
-                    }
-                    final List responseData = json.decode(response.body) ;
-                    setState(() {
-                      final_response = responseData.toString().replaceAll(RegExp(r'[{[}]'), '').replaceAll(']','');
-                      final_response = final_response.replaceAll(',','\n').replaceAll("categories:", "");
-                    });
-                  },
+                Visibility(
+                    visible: _visible,
+                    child:FlatButton(
+                      color:Colors.blue,
+                      textColor:Colors.white,
+                      child:Text("Predict",),
+                      onPressed: ()async
+                      {
+                        final request = http.MultipartRequest("POST", Uri.parse(url));
+                        final multipartFile = await http.MultipartFile.fromPath('file', pathpre,contentType: MediaType('image', 'jpeg'));
+                        request.files.add(multipartFile);
+                        final streamedResponse = await request.send();
+                        final response = await http.Response.fromStream(streamedResponse);
+                        if(response.statusCode == 200){
+                          Fluttertoast.showToast(
+                              msg: "Predict Success",
+                              toastLength: Toast.LENGTH_SHORT,
+                              gravity: ToastGravity.CENTER,
+                              timeInSecForIosWeb: 1,
+                              backgroundColor: Colors.grey,
+                              textColor: Colors.red,
+                              fontSize: 10.0
+                          );
+                        }
+                        final List responseData = json.decode(response.body) ;
+                        setState(() {
+                          final_response = responseData.toString().replaceAll(RegExp(r'[{[}]'), '').replaceAll(']','');
+                          final_response = final_response.replaceAll(',','\n').replaceAll("categories:", "");
+                        });
+                      },
+                    )
                 ),
+
                 Expanded(
                     child:
                     Text(final_response, style: TextStyle(fontSize: 10,color: Colors.blue,fontWeight: FontWeight.bold),)),
